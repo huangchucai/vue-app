@@ -38,7 +38,6 @@
         this._setSlideWidth()  // 设置滑动的父元素宽度
         this._initDots() // 初始化下边按钮
         this._initSlider() // 初始化滑动
-        console.log(11)
         // 自动播放
         if (this.autoPlay) {
           this._play()
@@ -46,8 +45,11 @@
       }, 20)
       // 监听窗口大小改变的时候
       window.addEventListener('resize', () => {
+        if (!this.slider) {
+          return
+        }
         this._setSlideWidth(true)
-        this._play()
+        this.slider.refresh()
       })
     },
     methods: {
