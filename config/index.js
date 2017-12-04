@@ -6,11 +6,25 @@ const path = require('path')
 
 module.exports = {
   dev: {
-
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    // 中间件代理
+    proxyTable: {
+      // "/api/getDiscList": {
+      //   target: 'https://c.y.qq.com/',
+      //   secure: false,
+      //   changeOrigin:true,
+      //   pathRewrite: {
+      //     '^/api/getDiscList' : '/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg'
+      //   },
+      //   onProxyReq(proxyReq, req, res) {
+      //     proxyReq.setHeader('referer', 'https://c.y.qq.com/')
+      //     proxyReq.setHeader('host', 'c.y.qq.com')
+      //     console.log(req.headers)
+      //   }
+      // }
+    },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST

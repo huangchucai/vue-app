@@ -1,34 +1,52 @@
 <template>
   <div class="recommend" ref="recommend">
-    <div>
-      <!-- 这里使用v-if是由于请求接口是异步的，所有可能在数据没有回来的时候，就渲染了子组件 -->
-      <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
-        <slider>
-          <div v-for="item in recommends">
-            <a :href="item.linkUrl">
-              <img class="needsclick" :src="item.picUrl">
-            </a>
+    <scroll :data="discList" class="recommend-content" ref="scroll">
+      <div>
+        <div>
+          <!-- 这里使用v-if是由于请求接口是异步的，所有可能在数据没有回来的时候，就渲染了子组件 -->
+          <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
+            <slider>
+              <div v-for="item in recommends">
+                <a :href="item.linkUrl">
+                  <img class="needsclick" :src="item.picUrl" @load="loadImage">
+                </a>
+              </div>
+            </slider>
           </div>
-        </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li v-for="item in discList" class="item">
+              <div class="icon">
+                <img :src="item.imgurl" alt="歌单" width="60" height="60">
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <div class="recommend-list">
-      <h1 class="list-title">热门歌单推荐</h1>
-    </div>
+    </scroll>
   </div>
 </template>
 <script type="text/ecmascript-6">
-  import {getRecommend} from 'api/recommend'
+  import {getRecommend, getDiscList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
   import Slider from 'base/slider/slider'
+  import Scroll from 'base/scroll/scroll'
   export default {
     data() {
       return {
-        recommends: []
+        recommends: [],
+        discList: []
       }
     },
     created() {
       this._getRecommend()
+      this._getDiscList()
     },
     methods: {
       _getRecommend() {
@@ -37,10 +55,25 @@
             this.recommends = res.data.slider
           }
         })
+      },
+      _getDiscList() {
+        getDiscList().then(res => {
+          if (res.code === ERR_OK) {
+            this.discList = res.data.list
+          }
+        })
+      },
+      loadImage() {
+        // 防止滑动图片的接口返回在bscroll初始化后
+        if (!this.imgLoaded) {
+          this.imgLoaded = true
+          this.$refs.scroll.refresh()
+        }
       }
     },
     components: {
-      Slider
+      Slider,
+      Scroll
     }
   }
 </script>
