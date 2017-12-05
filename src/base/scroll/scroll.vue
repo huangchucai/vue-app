@@ -61,8 +61,13 @@
       refresh() {
         this.scroll && this.scroll.refresh()
       },
-      child() {
-        alert(111)
+      // 滚动的距离
+      scrollTo() {
+        this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+      },
+      // 滚动到元素
+      scrollToElement() {
+        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
       }
     },
     watch: {

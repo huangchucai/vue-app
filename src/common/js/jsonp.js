@@ -17,7 +17,7 @@ export default function jsonp(url, data, option) {
 
 function formatData(data) {
   let param = Object.keys(data).reduce((memo, key) => {
-    memo += `& ${key}=${data[key] ? encodeURIComponent(data[key]) : ''}`
+    memo += `&${key}=${data[key] ? encodeURIComponent(data[key]) : ''}`
     return memo
   }, '')
   return param.substring(1)
