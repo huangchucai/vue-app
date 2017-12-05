@@ -1,7 +1,8 @@
 <template>
   <scroll :data="data"
           class="listview"
-          ref="listview">
+          ref="listview"
+          :listenScroll=listenScroll @scroll="scroll">
     <ul>
       <li v-for="group in data" class="list-group" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
@@ -13,9 +14,16 @@
         </uL>
       </li>
     </ul>
-    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove="onShortcutTouchMove">
+    <div class="list-shortcut" @touchstart.stop.prevent="onShortcutTouchStart"
+         @touchmove.stop.prevent="onShortcutTouchMove">
       <ul>
-        <li v-for="(item, index) in shortcutList" :data-index="index" class="item">{{item}}</li>
+        <li v-for="(item, index) in shortcutList" :data-index="index"
+            class="item"
+            :class="{'current' :currentIndex === index}">{{item}}
+
+
+
+        </li>
       </ul>
     </div>
   </scroll>
@@ -29,6 +37,13 @@
       // 用于onShortcutTouchStart 和 onShortcutTouchEnd之间传递的
       // 不需要动态监听，所有放在created中
       this.touch = {}
+      this.listenScroll = true
+    },
+    data() {
+      return {
+        currentIndex: 0,
+        scrollY: -1
+      }
     },
     props: {
       data: {
@@ -50,7 +65,24 @@
         const gap = this.touch.y2 - this.touch.y1
         // | 0可以向下取整
         const gapIndex = ((gap / ANCHOR_HEIGHT) | 0) + Number.parseInt(this.touch.anchorIndex)
+        console.log(gapIndex)
         this._scrollTo(gapIndex)
+      },
+      scroll(pos) {
+        this.scrollY = pos.y
+      },
+      // 获取所有的歌星的列表的累加
+      _calculateHeight() {
+        this.listHeight = []
+        const list = this.$refs.listGroup
+        let height = 0
+        this.listHeight.push(height)
+        for (let i = 0; i < list.length; i++) {
+          // 获取每一个元素的高度
+          let listDom = list[i]
+          height += listDom.clientHeight
+          this.listHeight.push(height)
+        }
       },
       _scrollTo(index) {
         this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
@@ -60,6 +92,24 @@
       shortcutList() {
         return this.data.map(item => {
           return item.title.substr(0, 1)
+        })
+      }
+    },
+    watch: {
+      data() {
+        setTimeout(() => {
+          this._calculateHeight()
+        }, 20)
+      },
+      scrollY(newY) {
+        this.listHeight.forEach((height, index) => {
+          let height2 = this.listHeight[index + 1]
+          // !height2防止最后一个
+          if (!height2 || (-newY > height && -newY < height2)) {
+            this.currentIndex = index
+            return
+          }
+          this.currentIndex = 0
         })
       }
     },
