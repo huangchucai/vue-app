@@ -2,6 +2,7 @@
   <scroll :data="data"
           class="listview"
           ref="listview"
+          :probeType="probeType"
           :listenScroll=listenScroll @scroll="scroll">
     <ul>
       <li v-for="group in data" class="list-group" ref="listGroup">
@@ -19,30 +20,43 @@
       <ul>
         <li v-for="(item, index) in shortcutList" :data-index="index"
             class="item"
-            :class="{'current' :currentIndex === index}">{{item}}
+            :class="{'current':currentIndex === index}">{{item}}
+
+
 
 
 
         </li>
       </ul>
     </div>
+    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+      <div class="fixed-title">{{fixedTitle}} </div>
+    </div>
+    <div class="loading-container" v-if="!data.length">
+      <loading></loading>
+    </div>
   </scroll>
 </template>
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll'
   import {getData} from 'common/js/dom'
+  import Loading from 'base/loading/loading'
   const ANCHOR_HEIGHT = 18
+  const FIXED_HEIGHT = 30
   export default {
     created() {
-      // 用于onShortcutTouchStart 和 onShortcutTouchEnd之间传递的
+      // 用于onShortcutTouchStart 和 onShortcutTouchMove之间传递的
       // 不需要动态监听，所有放在created中
       this.touch = {}
       this.listenScroll = true
+      this.listHeight = []
+      this.probeType = 3
     },
     data() {
       return {
         currentIndex: 0,
-        scrollY: -1
+        scrollY: -1,
+        diff: 0
       }
     },
     props: {
@@ -65,7 +79,6 @@
         const gap = this.touch.y2 - this.touch.y1
         // | 0可以向下取整
         const gapIndex = ((gap / ANCHOR_HEIGHT) | 0) + Number.parseInt(this.touch.anchorIndex)
-        console.log(gapIndex)
         this._scrollTo(gapIndex)
       },
       scroll(pos) {
@@ -85,6 +98,15 @@
         }
       },
       _scrollTo(index) {
+        if (!index && index !== 0) {
+          return
+        }
+        if (index < 0) {
+          index = 0
+        } else if (index > this.listHeight.length - 2) {
+          index = this.listHeight.length - 2
+        }
+        this.scrollY = -this.listHeight[index]
         this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
       }
     },
@@ -93,6 +115,13 @@
         return this.data.map(item => {
           return item.title.substr(0, 1)
         })
+      },
+      fixedTitle() {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        // 刚开始data没有
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     watch: {
@@ -101,20 +130,42 @@
           this._calculateHeight()
         }, 20)
       },
+      // 改变scrollY就可以改变currentIndex
       scrollY(newY) {
-        this.listHeight.forEach((height, index) => {
-          let height2 = this.listHeight[index + 1]
+        const listHeight = this.listHeight
+        // 当滚动到顶部向上拉 newY > 0
+        if (newY > 0) {
+          this.currentIndex = 0
+          return
+        }
+        // 在中间部分滚动
+        for (let i = 0; i < listHeight.length - 1; i++) {
+          // 这里只是判定滚动高度在哪一个区间，不需要用forEach来控制每一个元素
+          let height1 = listHeight[i]
+          let height2 = listHeight[i + 1]
+          this.diff = height2 + newY
           // !height2防止最后一个
-          if (!height2 || (-newY > height && -newY < height2)) {
-            this.currentIndex = index
+          if (-newY >= height1 && -newY < height2) {
+            this.currentIndex = i
             return
           }
-          this.currentIndex = 0
-        })
+        }
+        // 当滚动到底部，并且-newY的值大于最后一个的高度值
+        this.currentIndex = listHeight.length - 2
+        // 因为this.listHeight.length 比实际的listGroup-dom元素多添加了一个0
+      },
+      diff(newdiff) {
+        let fixedTop = (newdiff > 0 && newdiff < FIXED_HEIGHT) ? (newdiff - FIXED_HEIGHT) : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0, ${fixedTop}px, 0)`
       }
     },
     components: {
-      Scroll
+      Scroll,
+      Loading
     }
   }
 </script>
