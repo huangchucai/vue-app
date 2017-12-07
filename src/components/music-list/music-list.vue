@@ -48,7 +48,13 @@
         // console.log(`maxTransalteY   ${this.maxTransalteY}`)
         let layerTop = Math.max(newY, this.maxTransalteY)
         let zIndex = 0
-        this.$refs.layer.style.top = `${layerTop}px`
+        let scale = 1
+        // this.$refs.layer.style.top = `${layerTop}px`
+        this.$refs.layer.style['transform'] = `translate3d(0,${layerTop}px,0)`
+        // TODO 实现向下拉图片变大的效果
+        if (newY > 0) {
+        }
+        this.$refs.bgImage.transform = `scale(${scale})`
         // 滑动超出上边界
         if (this.maxTransalteY > newY) {
           this.$refs.bgImage.style.paddingTop = 0
