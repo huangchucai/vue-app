@@ -5,7 +5,6 @@ import Recommend from 'components/recommend/recommend'
 import Search from 'components/search/search'
 import Singer from 'components/singer/singer'
 import SingerDetail from 'components/singer-detail/singer-detail'
-console.log(SingerDetail)
 Vue.use(Router)
 
 export default new Router({
