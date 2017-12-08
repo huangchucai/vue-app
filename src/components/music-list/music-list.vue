@@ -19,7 +19,7 @@
             @scroll="scroll"
             :listenScroll="listenScroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="select"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -31,6 +31,7 @@
   import SongList from 'base/song-list/song-list'
   import Scroll from 'base/scroll/scroll'
   import {prefixStyle} from 'common/js/dom'
+  import {mapActions} from 'vuex'
   import Loading from 'base/loading/loading'
   const transform = prefixStyle('transform')
   const backdrop = prefixStyle('backdrop-filter')
@@ -56,7 +57,14 @@
       },
       back() {
         this.$router.back()
-      }
+      },
+      select(item, index) {
+        this.selectPlay({
+          list: this.songs,
+          index
+        })
+      },
+      ...mapActions(['selectPlay'])
     },
     watch: {
       scrollY(newY) {
@@ -71,11 +79,11 @@
         // 设置模糊的百分比
         const percent = Math.abs(newY / this.imgHeight)
         if (newY > 0) {
-           // 像下拉的时候图片放大
+          // 像下拉的时候图片放大
           zIndex = 10
           scale = 1 + percent
         } else {
-           // 向上的时候filter模糊
+          // 向上的时候filter模糊
           blur = Math.min(20, percent * 20)
         }
         this.$refs.bgImage.style[transform] = `scale(${scale})`
