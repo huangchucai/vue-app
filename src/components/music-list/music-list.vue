@@ -1,11 +1,17 @@
 <template>
   <div class="music-list">
-    <div class="back">
+    <div class="back" @click="back">
       <i class="icon-back"></i>
     </div>
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
-      <div class="filter"></div>
+      <div class="play-wrapper">
+        <div ref="playBtn" v-show="songs.length>0" class="play">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
+      <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
     <scroll :data="songs" class="list" ref="list"
@@ -15,12 +21,19 @@
       <div class="song-list-wrapper">
         <song-list :songs="songs"></song-list>
       </div>
+      <div class="loading-container" v-show="!songs.length">
+        <loading></loading>
+      </div>
     </scroll>
   </div>
 </template>
 <script type="text/ecmascript-6">
   import SongList from 'base/song-list/song-list'
   import Scroll from 'base/scroll/scroll'
+  import {prefixStyle} from 'common/js/dom'
+  import Loading from 'base/loading/loading'
+  const transform = prefixStyle('transform')
+  const backdrop = prefixStyle('backdrop-filter')
   const RESERVED_HEIGHT = 40
   export default {
     computed: {
@@ -40,6 +53,9 @@
     methods: {
       scroll(pos) {
         this.scrollY = pos.y
+      },
+      back() {
+        this.$router.back()
       }
     },
     watch: {
@@ -48,19 +64,30 @@
         // console.log(`maxTransalteY   ${this.maxTransalteY}`)
         let layerTop = Math.max(newY, this.maxTransalteY)
         let zIndex = 0
+        let blur = 0
         let scale = 1
         // this.$refs.layer.style.top = `${layerTop}px`
-        this.$refs.layer.style['transform'] = `translate3d(0,${layerTop}px,0)`
-        // TODO 实现向下拉图片变大的效果
+        this.$refs.layer.style[transform] = `translate3d(0,${layerTop}px,0)`
+        // 设置模糊的百分比
+        const percent = Math.abs(newY / this.imgHeight)
         if (newY > 0) {
+           // 像下拉的时候图片放大
+          zIndex = 10
+          scale = 1 + percent
+        } else {
+           // 向上的时候filter模糊
+          blur = Math.min(20, percent * 20)
         }
-        this.$refs.bgImage.transform = `scale(${scale})`
+        this.$refs.bgImage.style[transform] = `scale(${scale})`
+        this.$refs.filter.style[backdrop] = `blur(${blur}px)`
         // 滑动超出上边界
         if (this.maxTransalteY > newY) {
           this.$refs.bgImage.style.paddingTop = 0
           this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+          this.$refs.playBtn.style.display = 'none'
           zIndex = 10
         } else {
+          this.$refs.playBtn.style.display = 'block'
           this.$refs.bgImage.style.paddingTop = '70%'
           this.$refs.bgImage.style.height = 0
         }
@@ -88,7 +115,8 @@
     },
     components: {
       SongList,
-      Scroll
+      Scroll,
+      Loading
     }
   }
 </script>
