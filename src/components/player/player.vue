@@ -19,7 +19,7 @@
         <div class="middle">
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
+              <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
@@ -30,14 +30,14 @@
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
-              <i class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i class="icon-prev" @click="prev"></i>
             </div>
-            <div class="icon i-center">
-              <i class="icon-play"></i>
+            <div class="icon i-center" :class="disableCls">
+              <i :class="playIcon" @click="togglePlaying"></i>
             </div>
-            <div class="icon i-right">
-              <i class="icon-next"></i>
+            <div class="icon i-right" :class="disableCls">
+              <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-not-favorite"></i>
@@ -49,29 +49,50 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img :class="cdCls" width="40" height="40" :src="currentSong.image">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="togglePlaying">
+          <i :class="miniIcon"></i>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio :src="currentSong.url" ref="audio" @canplay="ready"
+           @error="error"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
   import {mapGetters, mapMutations} from 'vuex'
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
+
   const transform = prefixStyle('transform')
   export default {
+    data() {
+      return {
+        songReady: false
+      }
+    },
     computed: {
-      ...mapGetters(['fullScreen', 'playlist', 'currentSong'])
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      cdCls() {
+        return this.playing ? 'play' : 'play pause'
+      },
+      disableCls() {
+        return this.songReady ? '' : 'disable'
+      },
+      miniIcon() {
+        return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+      },
+      ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex'])
     },
     methods: {
       enter(el, done) {
@@ -101,7 +122,6 @@
         animations.runAnimation(this.$refs.cdWrapper, 'move', done)
       },
       afterEnter(el) {
-        console.log('afterEnter')
         animations.unregisterAnimation('move')
         this.$refs.cdWrapper.style.animation = ''
       },
@@ -121,6 +141,49 @@
       open() {
         this.setFullScreen(true)
       },
+      ready() {
+        this.songReady = true
+      },
+      error() {
+        // 当加载歌曲失败的时候，也让用户点击下一曲
+        this.songReady = true
+      },
+      togglePlaying() {
+        if (!this.songReady) {
+          return
+        }
+        this.setPlayingState(!this.playing)
+      },
+      next() {
+        if (!this.songReady) {
+          return
+        }
+        let index = this.currentIndex + 1
+        if (index === this.currentIndex) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
+        // 设置切换下一首歌曲的时候，为播放状态
+        if (!this.playing) {
+          this.setPlayingState(true)
+        }
+        this.songReady = false
+      },
+      prev() {
+        if (!this.songReady) {
+          return
+        }
+        let index = this.currentIndex - 1
+        if (index < 0) {
+          index = this.currentIndex - 1
+        }
+        this.setCurrentIndex(index)
+        // 设置切换上一首歌曲的时候，为播放状态
+        if (!this.playing) {
+          this.setPlayingState(true)
+        }
+        this.songReady = false
+      },
       _getPosAndScale() {
         const targetWidth = 40 // 小图标的width
         const paddingLeft = 40
@@ -137,8 +200,23 @@
         }
       },
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN'
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayingState: 'SET_PLAYING_STATE',
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       })
+    },
+    watch: {
+      currentSong(newSong) {
+        this.$nextTick(() => {
+          this.$refs.audio.play()
+        })
+      },
+      playing(newState) {
+        this.$nextTick(() => {
+          let audio = this.$refs.audio
+          newState ? audio.play() : audio.pause()
+        })
+      }
     }
   }
 </script>
