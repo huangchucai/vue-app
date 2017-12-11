@@ -29,7 +29,7 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :precent="precent"></progress-bar>
+              <progress-bar :precent="precent" @percentChange="proscrollEnd"></progress-bar>
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
@@ -204,6 +204,12 @@
         const minute = (interval / 60 | 0) // 获取分钟
         const second = (interval % 60).toString().padStart(2, 0)// 获取秒
         return `${minute}:${second}`
+      },
+      proscrollEnd(newPrecent) {
+        this.$refs.audio.currentTime = newPrecent * this.currentSong.duration
+        if (!this.playing) {
+          this.togglePlaying()
+        }
       },
       _getPosAndScale() {
         const targetWidth = 40 // 小图标的width

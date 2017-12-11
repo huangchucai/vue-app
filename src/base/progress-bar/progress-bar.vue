@@ -1,5 +1,5 @@
 <template>
-  <div class="progress-bar" ref="progressBar">
+  <div class="progress-bar" ref="progressBar" @click="progressClick">
     <div class="bar-inner">
       <div class="progress" ref="progress"></div>
       <div class="progress-btn-wrapper" ref="progressBtn"
@@ -42,22 +42,37 @@
         }
         const detal = e.touches[0].pageX - this.touch.startX
         const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + detal))
-        console.log(offsetWidth)// offsetWidth始终算的是滑动按钮距离最左边的偏移量
+        // console.log(offsetWidth) offsetWidth始终算的是滑动按钮距离最左边的偏移量
         this._offset(offsetWidth)
+      },
+      progressTouchEnd() {
+        this.touch.initiated = false
+        this._triggerPercent()
+      },
+      progressClick(e) {
+        let rect = this.$refs.progress.getBoundingClientRect() // 获取progress距离屏幕左边的距离
+        let offsetWidth = e.clientX - rect.left
+        this._offset(offsetWidth)
+        this._triggerPercent()
       },
       _offset(offsetWidth) {
         this.$refs.progress.style.width = `${offsetWidth}px`
         this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
       },
-      // TODO: 滑动结束后
-      progressTouchEnd() {
+      _triggerPercent() {
+        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+        const percent = this.$refs.progress.clientWidth / barWidth
+        this.$emit('percentChange', percent)
       }
     },
     watch: {
       precent(newPrecent) {
-        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth // 可以偏移的距离
-        const offsetWidth = barWidth * newPrecent
-        this._offset(offsetWidth)
+        // !this.touch.initiated 这里是防止来一直滑动的时候，歌曲在播放，引起了precent变化，造成滑动不顺利
+        if (newPrecent >= 0 && !this.touch.initiated) {
+          const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth // 可以偏移的距离
+          const offsetWidth = barWidth * newPrecent
+          this._offset(offsetWidth)
+        }
       }
     }
   }
