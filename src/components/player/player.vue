@@ -34,8 +34,8 @@
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="playModeIcon"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i class="icon-prev" @click="prev"></i>
@@ -82,7 +82,8 @@
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
-
+  import {playMode} from 'common/js/config'
+  import {shuffle} from 'common/js/util'
   const transform = prefixStyle('transform')
   export default {
     data() {
@@ -92,6 +93,9 @@
       }
     },
     computed: {
+      playModeIcon() {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+      },
       playIcon() {
         return this.playing ? 'icon-pause' : 'icon-play'
       },
@@ -107,7 +111,7 @@
       miniIcon() {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
       },
-      ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex'])
+      ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex', 'mode', 'playlist', 'sequenceList'])
     },
     methods: {
       enter(el, done) {
@@ -214,6 +218,26 @@
           this.togglePlaying()
         }
       },
+      changeMode() {
+        // 播放模式的切换
+        const mode = (this.mode + 1) % 3
+        this.setPlayMode(mode)
+        let list = null
+        if (mode === playMode.random) {
+          list = shuffle(this.playlist)
+        } else {
+          list = this.sequenceList
+        }
+        // 切换模式后改变currentIndex保证当前歌曲不变
+        this.resetCurrentIndex(list)
+        this.setPlaylist(list)
+      },
+      resetCurrentIndex(list) {
+        let index = list.findIndex(item => {
+          return item.id === this.currentSong.id
+        })
+        this.setCurrentIndex(index)
+      },
       _getPosAndScale() {
         const targetWidth = 40 // 小图标的width
         const paddingLeft = 40
@@ -232,11 +256,18 @@
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayMode: 'SET_PLAY_MODE',
+        setPlaylist: 'SET_PLAYLIST'
       })
     },
     watch: {
-      currentSong(newSong) {
+      currentSong(newSong, oldSong) {
+        console.log('改变了歌曲currentSong')
+        // 保证切换模式后，不触发播放按钮
+        if (newSong.id === oldSong.id) {
+          return
+        }
         this.$nextTick(() => {
           this.$refs.audio.play()
         })
@@ -246,6 +277,18 @@
           let audio = this.$refs.audio
           newState ? audio.play() : audio.pause()
         })
+      },
+      precent(newPrecent) {
+        if (newPrecent < 0.999) {
+          return
+        }
+        let index = this.currentIndex
+        if (this.playlist.length > index) {
+          index += 1
+        } else {
+          index = 0
+        }
+        this.setCurrentIndex(index)
       }
     },
     components: {
