@@ -218,6 +218,9 @@
           this.togglePlaying()
         }
       },
+      getLyric() {
+        this.currentSong.getLyric().then((lyric) => {})
+      },
       changeMode() {
         // 播放模式的切换
         const mode = (this.mode + 1) % 3
@@ -280,6 +283,7 @@
         }
         this.$nextTick(() => {
           this.$refs.audio.play()
+          this.getLyric()
         })
       },
       playing(newState) {
