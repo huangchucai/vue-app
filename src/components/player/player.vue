@@ -24,6 +24,16 @@
               </div>
             </div>
           </div>
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current': currentLineNum ===index}"
+                   v-for="(line,index) in currentLyric.lines">{{line.txt}}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
@@ -84,12 +94,16 @@
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/util'
+  import Lyric from 'lyric-parser'
+  import Scroll from 'base/scroll/scroll'
   const transform = prefixStyle('transform')
   export default {
     data() {
       return {
         songReady: false,
-        currentTime: 0
+        currentTime: 0,
+        currentLyric: null,
+        currentLineNum: 0
       }
     },
     computed: {
@@ -219,7 +233,26 @@
         }
       },
       getLyric() {
-        this.currentSong.getLyric().then((lyric) => {})
+        this.currentSong.getLyric().then((lyric) => {
+          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          if (this.playing) {
+            this.currentLyric.play()
+          }
+        }).catch(() => {
+          this.currentLyric = null
+          this.currentLineNum = 0
+        })
+      },
+      // 处理歌词
+      handleLyric({lineNum, txt}) {
+        console.log(`lineNum: ${lineNum}`)
+        this.currentLineNum = lineNum
+        if (this.currentLineNum > 5) {
+          let lineEl = this.$refs.lyricLine[lineNum - 5]  // 获取对应的元素
+          this.$refs.lyricList.scrollToElement(lineEl, 800)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 800)
+        }
       },
       changeMode() {
         // 播放模式的切换
@@ -295,7 +328,8 @@
     },
     components: {
       ProgressBar,
-      ProgressCircle
+      ProgressCircle,
+      Scroll
     }
   }
 </script>
