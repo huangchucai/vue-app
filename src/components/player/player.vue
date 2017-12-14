@@ -16,7 +16,9 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle" @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd">
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -36,6 +38,10 @@
           </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -97,13 +103,15 @@
   import Lyric from 'lyric-parser'
   import Scroll from 'base/scroll/scroll'
   const transform = prefixStyle('transform')
+  const transitionDuration = prefixStyle('transitionDuration')
   export default {
     data() {
       return {
         songReady: false,
         currentTime: 0,
         currentLyric: null,
-        currentLineNum: 0
+        currentLineNum: 0,
+        currentShow: 'cd'
       }
     },
     computed: {
@@ -126,6 +134,9 @@
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
       },
       ...mapGetters(['fullScreen', 'playlist', 'currentSong', 'playing', 'currentIndex', 'mode', 'playlist', 'sequenceList'])
+    },
+    created() {
+      this.touch = {}
     },
     methods: {
       enter(el, done) {
@@ -245,7 +256,6 @@
       },
       // 处理歌词
       handleLyric({lineNum, txt}) {
-        console.log(`lineNum: ${lineNum}`)
         this.currentLineNum = lineNum
         if (this.currentLineNum > 5) {
           let lineEl = this.$refs.lyricLine[lineNum - 5]  // 获取对应的元素
@@ -253,6 +263,60 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 800)
         }
+      },
+      middleTouchStart(e) {
+        this.touch.initiated = true
+        this.touch.startX = e.touches[0].pageX
+        this.touch.startY = e.touches[0].pageY
+      },
+      middleTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageX - this.touch.startY
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        let left = this.currentShow === 'cd' ? 0 : -window.innerWidth // 最初始的时候的左边距
+        // offsetWidth 最小也是-window.innerWidth 最大是 0
+        let offsetWidth = Math.min(0, Math.max(-window.innerWidth, deltaX + left))
+        this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+        // console.log(`offsetWidth: ${offsetWidth}`)
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = 0
+        this.$refs.middleL.style.opacity = 1 - this.touch.percent
+        this.$refs.middleL.style[transitionDuration] = 0
+      },
+      middleTouchEnd() {
+        const time = 300
+        let offsetWidth
+        let opacity
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetWidth = -window.innerWidth
+            this.currentShow = 'lyric'
+            opacity = 0
+          } else {
+            offsetWidth = 0
+            opacity = 1
+          }
+        } else {
+          if (this.touch.percent < 0.9) {
+            offsetWidth = 0
+            this.currentShow = 'cd'
+            opacity = 1
+          } else {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+          }
+        }
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+        this.$refs.middleL.style.opacity = opacity
+        this.$refs.middleL.style[transitionDuration] = `${time}ms`
+        this.initiated = false
       },
       changeMode() {
         // 播放模式的切换
