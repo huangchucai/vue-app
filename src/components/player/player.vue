@@ -73,7 +73,7 @@
       </div>
     </transition>
     <audio :src="currentSong.url" ref="audio" @canplay="ready"
-           @error="error" @timeupdate="updateTime"></audio>
+           @error="error" @ended="end" @timeupdate="updateTime"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -238,6 +238,17 @@
         })
         this.setCurrentIndex(index)
       },
+      // 播放歌曲结束
+      end() {
+        // 单曲循环模式
+        if (this.mode === playMode.loop) {
+          this.$refs.audio.currentTime = 0
+          this.$refs.audio.play()
+          this.setPlayingState(true)
+        } else {
+          this.next()
+        }
+      },
       _getPosAndScale() {
         const targetWidth = 40 // 小图标的width
         const paddingLeft = 40
@@ -263,7 +274,6 @@
     },
     watch: {
       currentSong(newSong, oldSong) {
-        console.log('改变了歌曲currentSong')
         // 保证切换模式后，不触发播放按钮
         if (newSong.id === oldSong.id) {
           return
@@ -277,18 +287,6 @@
           let audio = this.$refs.audio
           newState ? audio.play() : audio.pause()
         })
-      },
-      precent(newPrecent) {
-        if (newPrecent < 0.999) {
-          return
-        }
-        let index = this.currentIndex
-        if (this.playlist.length > index) {
-          index += 1
-        } else {
-          index = 0
-        }
-        this.setCurrentIndex(index)
       }
     },
     components: {
