@@ -1,0 +1,25 @@
+/**
+ * Created by Z7 on 2017/12/15.
+ */
+import {mapGetters} from 'vuex'
+export const playlistMixin = {
+  computed: {
+    ...mapGetters(['playlist'])
+  },
+  mounted() {
+    this.handlePlaylist(this.playlist)
+  },
+  activated() {
+    this.handlePlaylist(this.playlist)
+  },
+  methods: {
+    handlePlaylist() {
+      throw new Error('components must implement handlePlaylist method')
+    }
+  },
+  watch: {
+    playlist(newList) {
+      this.handlePlaylist(newList)
+    }
+  }
+}

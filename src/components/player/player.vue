@@ -25,6 +25,9 @@
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
@@ -111,7 +114,8 @@
         currentTime: 0,
         currentLyric: null,
         currentLineNum: 0,
-        currentShow: 'cd'
+        currentShow: 'cd',
+        playingLyric: ''
       }
     },
     computed: {
@@ -196,20 +200,28 @@
         if (!this.songReady) {
           return
         }
+        if (this.currentLyric) {
+          this.currentLyric.togglePlay()
+        }
         this.setPlayingState(!this.playing)
       },
       next() {
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.currentIndex) {
-          index = 0
-        }
-        this.setCurrentIndex(index)
-        // 设置切换下一首歌曲的时候，为播放状态
-        if (!this.playing) {
-          this.setPlayingState(true)
+        if (this.playlist.length === 1) {
+          this.loop()
+          return
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.currentIndex) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
+          // 设置切换下一首歌曲的时候，为播放状态
+          if (!this.playing) {
+            this.setPlayingState(true)
+          }
         }
         this.songReady = false
       },
@@ -217,14 +229,19 @@
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex - 1
-        if (index < 0) {
-          index = this.currentIndex - 1
-        }
-        this.setCurrentIndex(index)
-        // 设置切换上一首歌曲的时候，为播放状态
-        if (!this.playing) {
-          this.setPlayingState(true)
+        if (this.playlist.length === 1) {
+          this.loop()
+          return
+        } else {
+          let index = this.currentIndex - 1
+          if (index < 0) {
+            index = this.currentIndex - 1
+          }
+          this.setCurrentIndex(index)
+          // 设置切换上一首歌曲的时候，为播放状态
+          if (!this.playing) {
+            this.setPlayingState(true)
+          }
         }
         this.songReady = false
       },
@@ -238,9 +255,13 @@
         return `${minute}:${second}`
       },
       proscrollEnd(newPrecent) {
+        const currentTime = this.currentSong.duration * newPrecent
         this.$refs.audio.currentTime = newPrecent * this.currentSong.duration
         if (!this.playing) {
           this.togglePlaying()
+        }
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000)
         }
       },
       getLyric() {
@@ -252,6 +273,7 @@
         }).catch(() => {
           this.currentLyric = null
           this.currentLineNum = 0
+          this.playingLyric = ''
         })
       },
       // 处理歌词
@@ -263,6 +285,7 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 800)
         }
+        this.playingLyric = txt
       },
       middleTouchStart(e) {
         this.touch.initiated = true
@@ -283,7 +306,6 @@
         // offsetWidth 最小也是-window.innerWidth 最大是 0
         let offsetWidth = Math.min(0, Math.max(-window.innerWidth, deltaX + left))
         this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
-        // console.log(`offsetWidth: ${offsetWidth}`)
         this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
         this.$refs.lyricList.$el.style[transitionDuration] = 0
         this.$refs.middleL.style.opacity = 1 - this.touch.percent
@@ -342,11 +364,17 @@
       end() {
         // 单曲循环模式
         if (this.mode === playMode.loop) {
-          this.$refs.audio.currentTime = 0
-          this.$refs.audio.play()
-          this.setPlayingState(true)
+          this.loop()
         } else {
           this.next()
+        }
+      },
+      loop() {
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+        this.setPlayingState(true)
+        if (this.currentLyric) {
+          this.currentLyric.seek(0)
         }
       },
       _getPosAndScale() {
@@ -378,10 +406,13 @@
         if (newSong.id === oldSong.id) {
           return
         }
-        this.$nextTick(() => {
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        setTimeout(() => {
           this.$refs.audio.play()
           this.getLyric()
-        })
+        }, 1000)
       },
       playing(newState) {
         this.$nextTick(() => {

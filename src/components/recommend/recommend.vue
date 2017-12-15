@@ -41,7 +41,9 @@
   import Slider from 'base/slider/slider'
   import Scroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
+  import {playlistMixin} from 'common/js/mixin'
   export default {
+    mixins: [playlistMixin],
     data() {
       return {
         recommends: [],
@@ -53,6 +55,9 @@
       this._getDiscList()
     },
     methods: {
+      refresh() {
+        this.$refs.scroll.refresh()
+      },
       _getRecommend() {
         getRecommend().then(res => {
           if (res.code === ERR_OK) {
@@ -66,6 +71,11 @@
             this.discList = res.data.list
           }
         })
+      },
+      handlePlaylist(list) {
+        const bottom = list.length > 0 ? '60px' : ''
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
       },
       loadImage() {
         // 防止滑动图片的接口返回在bscroll初始化后
