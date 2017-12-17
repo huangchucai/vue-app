@@ -68,4 +68,4 @@
     * getters
     * action
 
-15. ​
+15. ​vue-router 父子路由之间的传递
