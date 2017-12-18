@@ -68,6 +68,7 @@
     * getters
     * action
 
+
 15. Vue-music中的点击动画和滑动动画
 
     1. 根据touch事件的几个节点，`touchstart` `touchmove` `touchend` 这三个动画中的前2个得到从开始移动，到移动中的偏移位置。
@@ -75,3 +76,6 @@
     3. 根据偏移量来决定`transform`的偏移值
 
     *细节：* 可以初始化一个变量来确定滑动的开始`initiated`
+
+16. ​vue-router 父子路由之间的传递
+
