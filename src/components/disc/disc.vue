@@ -4,11 +4,11 @@
   </transition>
 </template>
 <script>
-import MusicList from "components/music-list/music-list";
-import { mapState } from "vuex";
-import { ERR_OK } from "api/config";
-import { getSongList } from "api/recommend";
-import { createSong } from "common/js/song";
+import MusicList from 'components/music-list/music-list'
+import { mapState } from 'vuex'
+import { ERR_OK } from 'api/config'
+import { getSongList } from 'api/recommend'
+import { createSong } from 'common/js/song'
 export default {
   data() {
     return {
@@ -21,14 +21,14 @@ export default {
   methods: {
     _getSongList() {
       if (!this.disc.dissid) {
-        this.$router.push("/recommend")
+        this.$router.push('/recommend')
         return
       }
       getSongList(this.disc.dissid).then(res => {
         if (res.code === ERR_OK) {
           this.songs = this._normalizeSongs(res.cdlist[0].songlist)
         }
-      });
+      })
     },
     _normalizeSongs(list) {
       let ret = []
@@ -36,7 +36,7 @@ export default {
         if (musicData.songid && musicData.albummid) {
           ret.push(createSong(musicData))
         }
-      });
+      })
       return ret
     }
   },
@@ -52,7 +52,7 @@ export default {
   components: {
     MusicList
   }
-};
+}
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

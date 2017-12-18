@@ -19,7 +19,7 @@
             @scroll="scroll"
             :listenScroll="listenScroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs" @select="select"></song-list>
+        <song-list :rank="rank" :songs="songs" @select="select"></song-list>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <loading></loading>
@@ -131,6 +131,10 @@
       bgImage: {
         default: '',
         type: String
+      },
+      rank: {
+        default: false,
+        type: Boolean
       }
     },
     components: {
