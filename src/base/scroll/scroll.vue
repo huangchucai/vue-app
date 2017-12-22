@@ -51,6 +51,14 @@
           probeType: this.probeType,
           click: this.click
         })
+        if (this.pullup) {
+          this.scroll.on('scrollEnd', () => {
+            if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+              this.$emit('scrollToEnd')
+            }
+          })
+        }
+        // 监听滚动， 用于数据滑动
         if (this.listenScroll) {
           let _this = this
           // Better-scroll会绑定this为实例
