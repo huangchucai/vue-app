@@ -39,3 +39,45 @@ export const randomPlay = function ({commit}, {list}) {
   commit(types.SET_FULL_SCREEN, true)
   commit(types.SET_PLAYING_STATE, true)
 }
+
+// 搜索列表点击歌曲加入播放列表
+export const insertSong = function ({commit, state}, song) {
+  let playlist = [...state.playlist] // 当前播放列表
+  let sequenceList = [...state.sequenceList]
+  let currentIndex = state.currentIndex // 当前播放的索引
+  let currentSong = playlist[currentIndex]
+  // 寻找当前播放列表是否有传递过来的歌曲
+  let fdIndex = findIndex(playlist, song)
+  // 在当前播放歌曲的后面添加传递过来的歌曲
+  currentIndex++
+  // 插入传递过来的歌曲
+  playlist.splice(currentIndex, 0, song)
+  // 判定当前播放的列表是否有传递过来的歌曲
+  if (fdIndex > -1) {
+    // 当前插入的歌曲在已有歌曲的后面
+    if (currentIndex > fdIndex) {
+      playlist.splice(fdIndex, 1)
+      // 数组的长度发生了变化，所有对于的索引也要变化
+      currentIndex--
+    } else {
+      playlist.splice(fdIndex + 1, 1)
+    }
+  }
+  // 这里来操作队列sequenceList
+  let currentSIndex = findIndex(sequenceList, currentSong) + 1 // 要插入歌曲的位置索引
+  let fsIndex = findIndex(sequenceList, song) // 查找播放队列是否有插入的歌曲
+  sequenceList.splice(currentSIndex, 0, song)  // 插入歌曲
+  if (fsIndex > -1) {
+    if (currentSIndex > fsIndex) {
+      sequenceList.splice(fsIndex, 1)
+    } else {
+      sequenceList.splice(fsIndex + 1, 1)
+    }
+  }
+  // 开始提交数据
+  commit(types.SET_PLAYLIST, playlist)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+  commit(types.SET_FULL_SCREEN, true)
+  commit(types.SET_PLAYING_STATE, true)
+}
