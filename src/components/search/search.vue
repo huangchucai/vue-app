@@ -13,6 +13,15 @@
             </li>
           </ul>
         </div>
+        <div class="search-history" v-show="searchHistory.length">
+          <h1 class="title">
+            <span class="text">搜索历史</span>
+            <span class="clear" @click="deleteAllSearch">
+                <i class="icon-clear"></i>
+              </span>
+          </h1>
+          <search-list :searches="searchHistory" @select="addQuery" @delete="deleteOne"></search-list>
+        </div>
       </div>
     </div>
     <div class="search-result" ref="searchResult" v-show="query">
@@ -23,10 +32,11 @@
 </template>
 <script type="text/ecmascript-6">
   import SearchBox from 'base/search-box/search-box'
+  import SearchList from 'base/search-list/search-list'
   import {getHotKey} from 'api/search'
   import {ERR_OK} from 'api/config'
   import Suggest from 'components/suggest/suggest'
-  import {mapActions} from 'vuex'
+  import {mapActions, mapGetters} from 'vuex'
   export default {
     created() {
       this._getHotKey()
@@ -36,6 +46,9 @@
         hotKey: [],
         query: ''
       }
+    },
+    computed: {
+      ...mapGetters(['searchHistory'])
     },
     methods: {
       _getHotKey() {
@@ -49,6 +62,14 @@
       saveSearch() {
         this.saveHistory(this.query)
       },
+      // 删除一个本地的记录和搜索记录
+      deleteOne(item) {
+        this.deleteSearchHistory(item)
+      },
+      // 删除全部历史记录
+      deleteAllSearch() {
+        this.clearSearchHistory()
+      },
       // 调用子组件的blur() 使input失去焦点
       blurInput() {
         this.$refs.searchBox.blur()
@@ -59,11 +80,12 @@
       onQueryChange(query) {
         this.query = query
       },
-      ...mapActions(['saveHistory'])
+      ...mapActions(['saveHistory', 'deleteSearchHistory', 'clearSearchHistory'])
     },
     components: {
       SearchBox,
-      Suggest
+      Suggest,
+      SearchList
     }
   }
 </script>

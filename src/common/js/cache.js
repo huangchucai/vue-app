@@ -22,6 +22,13 @@ function insertArray(arr, item, compare, max) {
     arr.pop()
   }
 }
+// 从数组中删除选项
+function deleteFromArray(arr, compare) {
+  const index = arr.findIndex(compare)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
+}
 // 存放搜索历史
 export function saveSearch(query) {
   let searches = storage.get(SEARCH_KEY, [])
@@ -34,4 +41,19 @@ export function saveSearch(query) {
 // 载入本地存放的搜索历史
 export function loadSearch() {
   return storage.get(SEARCH_KEY, [])
+}
+// 删除一个记录
+export function deleteSearch(query) {
+  const searches = storage.get(SEARCH_KEY, [])
+  deleteFromArray(searches, (item) => {
+    return query === item
+  })
+  storage.set(SEARCH_KEY, searches)
+  return searches
+}
+
+// 删除全部搜索记录
+export function clearSearch() {
+  storage.remove(SEARCH_KEY)
+  return []
 }

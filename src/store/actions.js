@@ -9,7 +9,7 @@
 import * as types from './mutations-types'
 import {shuffle} from 'common/js/util'
 import {playMode} from 'common/js/config'
-import {saveSearch} from 'common/js/cache'
+import {saveSearch, deleteSearch, clearSearch} from 'common/js/cache'
 
 function findIndex(list, song) {
   return list.findIndex(item => {
@@ -86,4 +86,14 @@ export const insertSong = function ({commit, state}, song) {
 // 存放搜索历史到本地
 export const saveHistory = function ({commit}, query) {
   commit(types.SET_SEARCH_HISTORY, saveSearch(query))
+}
+
+// 删除单个搜索
+export const deleteSearchHistory = function ({commit}, query) {
+  commit(types.SET_SEARCH_HISTORY, deleteSearch(query))
+}
+
+// 删除全部
+export const clearSearchHistory = function({commit}) {
+  commit(types.SET_SEARCH_HISTORY, clearSearch())
 }
