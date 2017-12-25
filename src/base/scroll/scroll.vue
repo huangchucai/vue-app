@@ -66,6 +66,12 @@
             _this.$emit('scroll', pos)
           })
         }
+        // 用于滑动的刚刚开始之前触发
+        if (this.beforeScroll) {
+          this.scroll.on('beforeScrollStart', () => {
+            this.$emit('beforeScroll')
+          })
+        }
       },
       disable() {
         this.scroll && this.scroll.disable()

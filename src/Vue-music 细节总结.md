@@ -94,3 +94,27 @@
     1. 用于异步获取数据
     2. 用于多次提交mutations
 
+20.  节流请求接口数据（ `watch`的新写法 ）
+
+    ```javascript
+    // 看到这样写，一波666
+    this.$watch('query', debounce((newQuery) => {
+      this.$emit('query', newQuery)
+    }, 300))
+
+    // 节流防止重复加载
+    export function debounce(func, delay) {
+      let timer = null
+      return function (...args) {
+        if (timer) {
+          clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+          func.apply(this, args)
+        }, delay)
+      }
+    }
+    ```
+
+    ​
+

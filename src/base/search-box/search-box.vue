@@ -7,6 +7,7 @@
 </template>
 
 <script type="text/ecmascript-6">
+  import {debounce} from 'common/js/util' // 节流控制
   export default {
     props: {
       placeholder: {
@@ -31,9 +32,10 @@
       }
     },
     created() {
-      this.$watch('query', (newQuery) => {
+      // 防止用户输入过快，节流控制
+      this.$watch('query', debounce((newQuery) => {
         this.$emit('query', newQuery)
-      })
+      }, 300))
     }
   }
 </script>
