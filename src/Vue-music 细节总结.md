@@ -116,5 +116,29 @@
     }
     ```
 
+21. Vuex引用的`mapActions`的时候可以简写,简写代码维护
+
+    ```javascript
+    // 这样的，直接传递的参数或者直接调用的
+    <search-list @delete="deleteOne"></search-list>
+    <span class="clear" @click="deleteAllSearch">
+    // 参数直接传递  
+    deleteOne(item) {
+      this.deleteSearchHistory(item)
+    },
+    // 直接调用
+    deleteAllSearch() {
+      this.clearSearchHistory()
+    }, 
+    ...mapActions(['saveHistory', 'deleteSearchHistory', 'clearSearchHistory'])
+
+
+    // 简化后
+    <span class="clear" @click="clearSearchHistory">
+    <search-list @delete="deleteSearchHistory"></search-list>
+    ```
+
+    ​
+
     ​
 

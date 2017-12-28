@@ -34,7 +34,6 @@
   import {mapActions} from 'vuex'
   import Loading from 'base/loading/loading'
   import {playlistMixin} from 'common/js/mixin'
-
   const transform = prefixStyle('transform')
   const backdrop = prefixStyle('backdrop-filter')
   const RESERVED_HEIGHT = 40
