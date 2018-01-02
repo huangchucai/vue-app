@@ -86,11 +86,12 @@
             <i :class="miniIcon" class="icon-mini"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <playlist ref="playlist"></playlist>
     <audio :src="currentSong.url" ref="audio" @canplay="ready"
            @error="error" @ended="end" @timeupdate="updateTime"></audio>
   </div>
@@ -101,6 +102,7 @@
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
+  import Playlist from 'components/playlist/playlist'
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/util'
   import Lyric from 'lyric-parser'
@@ -360,6 +362,9 @@
         })
         this.setCurrentIndex(index)
       },
+      showPlaylist() {
+        this.$refs.playlist.show()
+      },
       // 播放歌曲结束
       end() {
         // 单曲循环模式
@@ -424,7 +429,8 @@
     components: {
       ProgressBar,
       ProgressCircle,
-      Scroll
+      Scroll,
+      Playlist
     }
   }
 </script>
