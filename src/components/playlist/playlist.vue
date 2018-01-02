@@ -9,18 +9,20 @@
             <span class="clear"><i class="icon-clear"></i></span>
           </h1>
         </div>
-        <div class="list-content">
+        <scroll :data="sequenceList" class="list-content" ref="listContent">
           <ul>
-            <li class="item">
-              <i class="current"></i>
-              <span class="text"></span>
-              <span class="like"><i></i></span>
+            <li ref="list" class="item" v-for="(item, index) in sequenceList" @click="selectItem(item, index)">
+              <i class="current" :class="getCurrentIcon(item)"></i>
+              <span class="text">{{item.name}}</span>
+              <span class="like">
+                <i class="icon-not-favorite"></i>
+              </span>
               <span class="delete">
                 <i class="icon-delete"></i>
               </span>
             </li>
           </ul>
-        </div>
+        </scroll>
         <div class="list-operate">
           <div class="add">
             <i class="icon-add"></i>
@@ -35,6 +37,9 @@
   </transition>
 </template>
 <script type="text/ecmascript-6">
+  import {mapGetters, mapMutations} from 'vuex'
+  import {playMode} from 'common/js/config'
+  import Scroll from 'base/scroll/scroll'
   export default {
     data() {
       return {
@@ -44,9 +49,56 @@
     methods: {
       show() {
         this.showFlag = true
+        // 由于v-show不会重新渲染, v-if就不用添加
+        setTimeout(() => {
+          this.$refs.listContent.refresh()
+          this.scrollToCurrent(this.currentSong)
+        }, 20)
       },
       hide() {
         this.showFlag = false
+      },
+      // 点击选择歌曲
+      selectItem(item, index) {
+        // 如果是随机播放就找到列表中的歌曲
+        if (this.mode === playMode.random) {
+          index = this.playlist.findIndex(song => {
+            return song.id === item.id
+          })
+        }
+        // 设置当前播放歌曲
+        this.setCurrentIndex(index)
+        // 设置播放状态
+        this.setPlayingState(true)
+      },
+      // 滚动到当前的元素
+      // TODO: 滚动到当前元素
+      scrollToCurrent(current) {
+        let index = this.sequenceList.findIndex(song => current.id === song.id)
+        this.$refs.listContent.scrollToElement(this.$refs.list[index], 300)
+      },
+      getCurrentIcon(item) {
+        return item.id === this.currentSong.id ? 'icon-play' : ''
+      },
+      ...mapMutations({
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayingState: 'SET_PLAYING_STATE'
+      })
+    },
+    computed: {
+      ...mapGetters(['sequenceList', 'currentSong', 'mode', 'playlist'])
+    },
+    components: {
+      Scroll
+    },
+    watch: {
+      currentSong(newSong, oldSong) {
+        if (!this.showFlag || newSong.id === oldSong.id) {
+          return
+        }
+        setTimeout(() => {
+          this.scrollToCurrent(newSong)
+        }, 20)
       }
     }
   }
