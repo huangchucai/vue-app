@@ -119,3 +119,10 @@ export const deleteSong = function ({commit, state}, song) {
     commit(types.SET_PLAYING_STATE, true)
   }
 }
+// 删除全部播放列表
+export const deleteAllSong = function({commit}) {
+  commit(types.SET_CURRENT_INDEX, -1)
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_PLAYLIST, [])
+  commit(types.SET_PLAYING_STATE, false)
+}
