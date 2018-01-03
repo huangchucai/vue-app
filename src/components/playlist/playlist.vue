@@ -10,8 +10,9 @@
           </h1>
         </div>
         <scroll :data="sequenceList" class="list-content" ref="listContent">
-          <transition-group name="list" tag="ul">
-            <li :key="item.id" ref="listItem" class="item" v-for="(item, index) in sequenceList" @click="selectItem(item, index)">
+          <transition-group name="list" tag="ul" ref="list">
+            <li :key="item.id" ref="listItem" class="item" v-for="(item, index) in sequenceList"
+                @click="selectItem(item, index)">
               <i class="current" :class="getCurrentIcon(item)"></i>
               <span class="text">{{item.name}}</span>
               <span class="like">
@@ -24,7 +25,7 @@
           </transition-group>
         </scroll>
         <div class="list-operate">
-          <div class="add">
+          <div class="add" @click="addSong">
             <i class="icon-add"></i>
             <span class="text">添加歌曲到队列</span>
           </div>
@@ -34,6 +35,7 @@
         </div>
       </div>
       <confirm confirmBtnText="清空" text="是否清空播放列表" @confirm="clearList" ref="confirm"></confirm>
+      <add-song ref="addSong"></add-song>
     </div>
   </transition>
 </template>
@@ -43,6 +45,7 @@
   import Scroll from 'base/scroll/scroll'
   import Confirm from 'base/confirm/confirm'
   import {playerMixin} from 'common/js/mixin'
+  import AddSong from 'components/add-song/add-song'
   export default {
     mixins: [playerMixin],
     data() {
@@ -78,7 +81,7 @@
       // 滚动到当前的元素
       scrollToCurrent(current) {
         let index = this.sequenceList.findIndex(song => current.id === song.id)
-        this.$refs.listContent.scrollToElement(this.$refs.listItem[index], 300)
+        this.$refs.listContent.scrollToElement(this.$refs.list.$el.children[index], 300)
       },
       getCurrentIcon(item) {
         return item.id === this.currentSong.id ? 'icon-play' : ''
@@ -98,6 +101,10 @@
         this.deleteAllSong()
         this.hide()
       },
+      // 添加歌曲到播放列表
+      addSong() {
+        this.$refs.addSong.show()
+      },
       ...mapActions(['deleteSong', 'deleteAllSong'])
     },
     computed: {
@@ -107,7 +114,8 @@
     },
     components: {
       Scroll,
-      Confirm
+      Confirm,
+      AddSong
     },
     watch: {
       currentSong(newSong, oldSong) {

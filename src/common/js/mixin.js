@@ -1,7 +1,7 @@
 /**
  * Created by Z7 on 2017/12/15.
  */
-import {mapGetters, mapMutations} from 'vuex'
+import {mapGetters, mapMutations, mapActions} from 'vuex'
 import {playMode} from 'common/js/config'
 import {shuffle} from 'common/js/util'
 export const playlistMixin = {
@@ -25,6 +25,7 @@ export const playlistMixin = {
     }
   }
 }
+// play.vue 和 playlist.vue的mixin
 export const playerMixin = {
   computed: {
     playModeIcon() {
@@ -34,7 +35,6 @@ export const playerMixin = {
       'playlist',
       'currentSong',
       'mode',
-      'playlist',
       'sequenceList'])
   },
   methods: {
@@ -64,5 +64,34 @@ export const playerMixin = {
       setCurrentIndex: 'SET_CURRENT_INDEX',
       setPlayingState: 'SET_PLAYING_STATE'
     })
+  }
+}
+
+// add-song.vue 和 search.vue的搜索历史
+export const searchMixin = {
+  data() {
+    return {
+      query: ''
+    }
+  },
+  computed: {
+    ...mapGetters(['searchHistory'])
+  },
+  methods: {
+    // 本地存放搜索历史记录
+    saveSearch() {
+      this.saveHistory(this.query)
+    },
+    onQueryChange(query) {
+      this.query = query
+    },
+    // 调用子组件的blur() 使input失去焦点
+    blurInput() {
+      this.$refs.searchBox.blur()
+    },
+    addQuery(query) {
+      this.$refs.searchBox.setQuery(query)
+    },
+    ...mapActions(['saveHistory', 'deleteSearchHistory'])
   }
 }

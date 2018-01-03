@@ -41,22 +41,20 @@
   import {getHotKey} from 'api/search'
   import {ERR_OK} from 'api/config'
   import Suggest from 'components/suggest/suggest'
-  import {mapActions, mapGetters} from 'vuex'
-  import {playlistMixin} from 'common/js/mixin'
+  import {mapActions} from 'vuex'
+  import {playlistMixin, searchMixin} from 'common/js/mixin'
   export default {
-    mixins: [playlistMixin],
+    mixins: [playlistMixin, searchMixin],
     created() {
       this._getHotKey()
     },
     data() {
       return {
         hotKey: [],
-        query: '',
         beforeScroll: true
       }
     },
     computed: {
-      ...mapGetters(['searchHistory']),
       searchData() {
         return this.hotKey.concat(this.searchHistory)
       }
@@ -81,10 +79,6 @@
       showConfirm() {
         this.$refs.confirm.show()
       },
-      // 本地存放搜索历史记录
-      saveSearch() {
-        this.saveHistory(this.query)
-      },
       // 删除一个本地的记录和搜索记录
       deleteOne(item) {
         this.deleteSearchHistory(item)
@@ -93,17 +87,7 @@
       deleteAllSearch() {
         this.clearSearchHistory()
       },
-      // 调用子组件的blur() 使input失去焦点
-      blurInput() {
-        this.$refs.searchBox.blur()
-      },
-      addQuery(query) {
-        this.$refs.searchBox.setQuery(query)
-      },
-      onQueryChange(query) {
-        this.query = query
-      },
-      ...mapActions(['saveHistory', 'deleteSearchHistory', 'clearSearchHistory'])
+      ...mapActions(['clearSearchHistory'])
     },
     components: {
       SearchBox,
