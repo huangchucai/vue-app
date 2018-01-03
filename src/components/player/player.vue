@@ -407,6 +407,10 @@
     },
     watch: {
       currentSong(newSong, oldSong) {
+        // 当没有歌曲列表的时候
+        if (!newSong.id) {
+          return
+        }
         // 保证切换模式后，不触发播放按钮
         if (newSong.id === oldSong.id) {
           return
