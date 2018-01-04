@@ -5,7 +5,7 @@
         <h1 class="title">添加歌曲到列表</h1>
         <div class="close" @click="hide">
           <i class="icon-close"></i>
-        </div>
+        </div>  
       </div>
       <div class="search-box-wrapper">
         <search-box placeholder="搜索歌曲" @query="onQueryChange" ref="searchBox"></search-box>
@@ -18,7 +18,7 @@
               <song-list :songs="playHistory" @select="selectSong"></song-list>
             </div>
           </scroll>
-          <scroll v-if="currentIndex === 1" ref="searchList" :data="searchHistory" class="list-scroll">
+          <scroll v-if="currentIndex === 1" ref="searchList" :data="searchHistory" class="list-scroll" :refreshDelay="150">
             <div class="list-inner">
               <search-list :searches="searchHistory" @delete="deleteOne" @select="addQuery"></search-list>
             </div>
@@ -28,6 +28,12 @@
       <div class="search-result" v-show="query">
         <suggest :query="query" :showSinger="showSinger" @select="selectSuggest" @listScroll="blurInput"></suggest>
       </div>
+      <top-tip ref="topTip">
+        <div class="tip-title">
+          <i class="icon-ok"></i>
+          <span class="text">1首歌曲已经添加到播放列表</span>
+        </div>
+      </top-tip>
     </div>
   </transition>
 </template>
@@ -41,6 +47,7 @@
   import SearchList from 'base/search-list/search-list'
   import {mapGetters, mapActions} from 'vuex'
   import Song from 'common/js/song'
+  import TopTip from 'base/top-tip/top-tip'
   export default {
     mixins: [searchMixin],
     data() {
@@ -79,11 +86,13 @@
       selectSong(song, index) {
         if (index !== 0) {
           this.insertSong(new Song(song))
+          this.$refs.topTip.show()
         }
       },
       // 存放搜索历史
       selectSuggest() {
         this.saveSearch()
+        this.$refs.topTip.show()
       },
       switchItem(index) {
         this.currentIndex = index
@@ -96,7 +105,8 @@
       Switches,
       Scroll,
       SongList,
-      SearchList
+      SearchList,
+      TopTip
     },
     watch: {
       // 当没有长度的时候，需要刷新
