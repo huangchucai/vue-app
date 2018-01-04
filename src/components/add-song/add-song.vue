@@ -11,6 +11,19 @@
         <search-box placeholder="搜索歌曲" @query="onQueryChange" ref="searchBox"></search-box>
       </div>
       <div class="shortcut" v-show="!query">
+        <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
+        <div class="list-wrapper">
+          <scroll v-if="currentIndex === 0" ref="songList" :data="playHistory" class="list-scroll">
+            <div class="list-inner">
+              <song-list :songs="playHistory" @select="selectSong"></song-list>
+            </div>
+          </scroll>
+          <scroll v-if="currentIndex === 1" ref="searchList" :data="searchHistory" class="list-scroll">
+            <div class="list-inner">
+              <search-list :searches="searchHistory" @delete="deleteOne" @select="addQuery"></search-list>
+            </div>
+          </scroll>
+        </div>
       </div>
       <div class="search-result" v-show="query">
         <suggest :query="query" :showSinger="showSinger" @select="selectSuggest" @listScroll="blurInput"></suggest>
@@ -20,31 +33,79 @@
 </template>
 <script type="text/ecmascript-6">
   import SearchBox from 'base/search-box/search-box'
+  import Switches from 'base/switches/switches'
   import Suggest from 'components/suggest/suggest'
   import {searchMixin} from 'common/js/mixin'
+  import Scroll from 'base/scroll/scroll'
+  import SongList from 'base/song-list/song-list'
+  import SearchList from 'base/search-list/search-list'
+  import {mapGetters, mapActions} from 'vuex'
+  import Song from 'common/js/song'
   export default {
     mixins: [searchMixin],
     data() {
       return {
         showFlag: false,
-        showSinger: false
+        showSinger: false,
+        switches: [
+          {name: '最近播放'},
+          {name: '搜索历史'}
+        ],
+        currentIndex: 0
       }
+    },
+    computed: {
+      ...mapGetters(['playHistory'])
     },
     methods: {
       show() {
         this.showFlag = true
+        this.refreshScroll()
+      },
+      refreshScroll() {
+        if (this.currentIndex === 0) {
+          setTimeout(() => {
+            this.$refs.songList.refresh()
+          }, 20)
+        } else if (this.currentIndex === 1) {
+          setTimeout(() => {
+            this.$refs.searchList.refresh()
+          }, 20)
+        }
       },
       hide() {
         this.showFlag = false
       },
+      selectSong(song, index) {
+        if (index !== 0) {
+          this.insertSong(new Song(song))
+        }
+      },
       // 存放搜索历史
       selectSuggest() {
         this.saveSearch()
-      }
+      },
+      switchItem(index) {
+        this.currentIndex = index
+      },
+      ...mapActions(['insertSong'])
     },
     components: {
       SearchBox,
-      Suggest
+      Suggest,
+      Switches,
+      Scroll,
+      SongList,
+      SearchList
+    },
+    watch: {
+      // 当没有长度的时候，需要刷新
+      query(newQuery) {
+        if (!newQuery) {
+          // dom渲染需要时间，所有异步等dom渲染完成
+          this.refreshScroll()
+        }
+      }
     }
   }
 </script>

@@ -92,6 +92,10 @@ export const searchMixin = {
     addQuery(query) {
       this.$refs.searchBox.setQuery(query)
     },
+    // 删除一个本地的记录和搜索记录
+    deleteOne(item) {
+      this.deleteSearchHistory(item)
+    },
     ...mapActions(['saveHistory', 'deleteSearchHistory'])
   }
 }

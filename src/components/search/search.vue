@@ -79,10 +79,6 @@
       showConfirm() {
         this.$refs.confirm.show()
       },
-      // 删除一个本地的记录和搜索记录
-      deleteOne(item) {
-        this.deleteSearchHistory(item)
-      },
       // 删除全部历史记录
       deleteAllSearch() {
         this.clearSearchHistory()

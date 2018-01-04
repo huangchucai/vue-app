@@ -9,7 +9,7 @@
 import * as types from './mutations-types'
 import {shuffle} from 'common/js/util'
 import {playMode} from 'common/js/config'
-import {saveSearch, deleteSearch, clearSearch} from 'common/js/cache'
+import {saveSearch, deleteSearch, clearSearch, savePlay} from 'common/js/cache'
 
 function findIndex(list, song) {
   return list.findIndex(item => {
@@ -125,4 +125,9 @@ export const deleteAllSong = function({commit}) {
   commit(types.SET_SEQUENCE_LIST, [])
   commit(types.SET_PLAYLIST, [])
   commit(types.SET_PLAYING_STATE, false)
+}
+
+// 添加播放歌曲到播放历史
+export const savePlayHistory = function ({commit}, song) {
+  commit(types.SET_PLAY_HISTORY, savePlay(song))
 }
