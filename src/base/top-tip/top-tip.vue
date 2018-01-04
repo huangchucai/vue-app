@@ -22,7 +22,7 @@
     methods: {
       show() {
         this.showFlag = true
-        if (this.timer) clearTimeout(this.timer)
+        clearTimeout(this.timer)
         this.timer = setTimeout(() => {
           this.hide()
         }, this.delay)
