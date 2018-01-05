@@ -66,7 +66,7 @@
               <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-not-favorite"></i>
+              <i :class="favoriteIcon" @click="toggleFavorite(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -379,7 +379,7 @@
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN'
       }),
-      ...mapActions(['savePlayHistory'])
+      ...mapActions(['savePlayHistory', 'saveFavoriteList', 'deleteFavoriteList'])
     },
     watch: {
       currentSong(newSong, oldSong) {

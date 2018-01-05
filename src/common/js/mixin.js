@@ -31,11 +31,16 @@ export const playerMixin = {
     playModeIcon() {
       return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
     },
+    favoriteIcon() {
+      return this.getFavoriteIcon(this.currentSong)
+    },
     ...mapGetters([
       'playlist',
       'currentSong',
       'mode',
-      'sequenceList'])
+      'sequenceList',
+      'favoriteList'
+    ])
   },
   methods: {
     changeMode() {
@@ -58,12 +63,37 @@ export const playerMixin = {
       })
       this.setCurrentIndex(index)
     },
+    // 切换喜欢列表的逻辑
+    getFavoriteIcon(currentSong) {
+      // TIPS: 为什么这里会重写渲染
+      // 1. toggleFavorite改变了favoriteList
+      // 2. favoriteList被监听到变化，寻找依赖它的逻辑
+      // 3. 发现页面中的虚拟dom的属性依赖isFavorite，从而重写render虚拟dom
+      // 4. 通过diff算法来更新页面的dom
+      if (this.isFavorite(currentSong)) {
+        return 'icon-favorite'
+      } else {
+        return 'icon-not-favorite'
+      }
+    },
+    toggleFavorite(song) {
+      if (this.isFavorite(song)) {
+        this.deleteFavoriteList(song)
+      } else {
+        this.saveFavoriteList(song)
+      }
+    },
+    isFavorite(currentSong) {
+      const index = this.favoriteList.findIndex(item => currentSong.id === item.id)
+      return index > -1
+    },
     ...mapMutations({
       setPlayMode: 'SET_PLAY_MODE',
       setPlaylist: 'SET_PLAYLIST',
       setCurrentIndex: 'SET_CURRENT_INDEX',
       setPlayingState: 'SET_PLAYING_STATE'
-    })
+    }),
+    ...mapActions(['deleteFavoriteList', 'saveFavoriteList'])
   }
 }
 
