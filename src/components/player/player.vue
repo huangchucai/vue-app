@@ -92,7 +92,7 @@
       </div>
     </transition>
     <playlist ref="playlist"></playlist>
-    <audio :src="currentSong.url" ref="audio" @canplay="ready"
+    <audio :src="currentSong.url" ref="audio" @play="ready"
            @error="error" @ended="end" @timeupdate="updateTime"></audio>
   </div>
 </template>
@@ -267,6 +267,9 @@
       },
       getLyric() {
         this.currentSong.getLyric().then((lyric) => {
+          if (this.currentSong.lyric !== lyric) {
+            return
+          }
           this.currentLyric = new Lyric(lyric, this.handleLyric)
           if (this.playing) {
             this.currentLyric.play()
@@ -394,7 +397,9 @@
         if (this.currentLyric) {
           this.currentLyric.stop()
         }
-        setTimeout(() => {
+        // 多次切换的，清除之前的延时
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => {
           this.$refs.audio.play()
           this.getLyric()
         }, 1000)
