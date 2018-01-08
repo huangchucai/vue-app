@@ -63,7 +63,7 @@ module.exports = {
   },
 
   build: {
-    port: 9999,
+    port: 2345,
     // Template for index.html
     index: path.resolve(__dirname, '../dist/index.html'),
 
