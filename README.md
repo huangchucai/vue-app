@@ -70,6 +70,7 @@ npm run build --report
 ```
 ### 学习rebase
 1. 提交我第一次修改的test分支
+2. 提交第二次修改的分支
 ### rebase 学习
 1. 这是master分支
 2. 这是测试master分支
